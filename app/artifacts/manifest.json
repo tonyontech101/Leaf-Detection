@@ -1,0 +1,11 @@
+{
+  "generated_at": "2026-07-24T12:08:07.911926+00:00",
+  "checks": {
+    "embedding_weights_cached": true,
+    "embedding_index_built": true,
+    "vlm_pulled": false
+  },
+  "core_offline_ready": true,
+  "fully_offline_ready": false,
+  "vlm_model": "moondream"
+}
