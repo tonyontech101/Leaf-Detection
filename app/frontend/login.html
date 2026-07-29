@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#2E7D32" />
+  <meta name="description" content="Sign in to Leaf Recognition AI with your email and password, or with face recognition." />
+  <title>Sign in · Leaf Recognition AI</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="auth-body">
+  <div class="auth-shell">
+
+    <!-- ============ BRAND HERO (left) ============ -->
+    <aside class="auth-hero">
+      <div class="auth-hero__pattern" aria-hidden="true"></div>
+      <a class="brand brand--light" href="#" aria-label="Leaf Recognition AI home">
+        <span class="brand__mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+            <path d="M20 4C9 4 4 11 4 20c9 0 16-5 16-16Z" fill="currentColor" opacity=".35"/>
+            <path d="M20 4C9 4 4 11 4 20c9 0 16-5 16-16Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M6.5 17.5C10 13 14 9.5 18 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="brand__text">Leaf Recognition <b>AI</b></span>
+      </a>
+
+      <div class="auth-hero__body">
+        <h2 class="auth-hero__title">Know every leaf,<br/>right from your desk.</h2>
+        <p class="auth-hero__lead">
+          Identify plant species and spot leaf disease in seconds — powered by
+          on-device AI that never leaves your machine.
+        </p>
+        <ul class="auth-hero__list">
+          <li>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true"><path d="m5 12.5 4 4 10-10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Identify 8 species across 22 leaf conditions
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true"><path d="m5 12.5 4 4 10-10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            AI health analysis &amp; similar-leaf gallery
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true"><path d="m5 12.5 4 4 10-10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Sign in with a password or your face
+          </li>
+        </ul>
+      </div>
+
+      <p class="auth-hero__foot">
+        <span class="dot" aria-hidden="true"></span> Runs 100% locally — no internet required
+      </p>
+    </aside>
+
+    <!-- ============ AUTH PANEL (right) ============ -->
+    <main class="auth-panel">
+      <section class="auth-card" aria-labelledby="auth-title">
+        <div class="auth-card__head">
+          <h1 id="auth-title" class="auth-card__title">Welcome back</h1>
+          <p class="auth-card__sub" id="auth-sub">Sign in to identify plants and diagnose leaf health.</p>
+        </div>
+
+        <!-- mode tabs -->
+        <div class="auth-tabs" role="tablist" aria-label="Authentication mode">
+          <span class="auth-tabs__glider" aria-hidden="true"></span>
+          <button class="auth-tab is-active" id="tab-login" role="tab" aria-selected="true" type="button">Sign in</button>
+          <button class="auth-tab" id="tab-signup" role="tab" aria-selected="false" type="button">Create account</button>
+        </div>
+
+        <p id="auth-error" class="alert" hidden></p>
+        <p id="auth-success" class="alert alert--ok" hidden></p>
+
+        <!-- ============ SIGN IN ============ -->
+        <form id="login-form" class="auth-form" novalidate>
+          <div class="field">
+            <label class="field__label" for="login-email">Email</label>
+            <div class="field__wrap">
+              <svg class="field__icon" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+                <rect x="3" y="5" width="18" height="14" rx="3" stroke="currentColor" stroke-width="1.6"/>
+                <path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <input class="field__input" id="login-email" type="email" autocomplete="username"
+                     placeholder="you@example.com" required />
+            </div>
+          </div>
+          <div class="field">
+            <label class="field__label" for="login-password">Password</label>
+            <div class="field__wrap">
+              <svg class="field__icon" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+                <rect x="4" y="10" width="16" height="10" rx="2.5" stroke="currentColor" stroke-width="1.6"/>
+                <path d="M8 10V8a4 4 0 0 1 8 0v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+              <input class="field__input" id="login-password" type="password" autocomplete="current-password"
+                     placeholder="Your password" required />
+            </div>
+          </div>
+          <button class="btn btn--primary btn--full btn--lg" id="login-submit" type="submit">Sign in</button>
+
+          <div class="auth-divider"><span>or</span></div>
+
+          <button class="btn btn--ghost btn--full face-btn" id="face-login-btn" type="button">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+              <rect x="3.5" y="3.5" width="17" height="17" rx="5" stroke="currentColor" stroke-width="1.6"/>
+              <circle cx="9" cy="10" r="1.1" fill="currentColor"/>
+              <circle cx="15" cy="10" r="1.1" fill="currentColor"/>
+              <path d="M9 14.5c.9.9 2 1.3 3 1.3s2.1-.4 3-1.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+            Sign in with face
+          </button>
+        </form>
+
+        <!-- ============ SIGN UP ============ -->
+        <form id="signup-form" class="auth-form" hidden novalidate>
+          <div class="field">
+            <label class="field__label" for="signup-name">Full name</label>
+            <div class="field__wrap">
+              <svg class="field__icon" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+                <circle cx="12" cy="8" r="3.4" stroke="currentColor" stroke-width="1.6"/>
+                <path d="M5 20a7 7 0 0 1 14 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+              <input class="field__input" id="signup-name" type="text" autocomplete="name"
+                     placeholder="Jane Doe" required />
+            </div>
+          </div>
+          <div class="field">
+            <label class="field__label" for="signup-email">Email</label>
+            <div class="field__wrap">
+              <svg class="field__icon" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+                <rect x="3" y="5" width="18" height="14" rx="3" stroke="currentColor" stroke-width="1.6"/>
+                <path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <input class="field__input" id="signup-email" type="email" autocomplete="email"
+                     placeholder="you@example.com" required />
+            </div>
+          </div>
+          <div class="field">
+            <label class="field__label" for="signup-password">Password</label>
+            <div class="field__wrap">
+              <svg class="field__icon" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+                <rect x="4" y="10" width="16" height="10" rx="2.5" stroke="currentColor" stroke-width="1.6"/>
+                <path d="M8 10V8a4 4 0 0 1 8 0v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+              <input class="field__input" id="signup-password" type="password" autocomplete="new-password"
+                     placeholder="At least 8 characters" required minlength="8" />
+            </div>
+          </div>
+          <div class="field">
+            <label class="field__label" for="signup-confirm">Confirm password</label>
+            <div class="field__wrap">
+              <svg class="field__icon" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+                <rect x="4" y="10" width="16" height="10" rx="2.5" stroke="currentColor" stroke-width="1.6"/>
+                <path d="M8 10V8a4 4 0 0 1 8 0v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+              <input class="field__input" id="signup-confirm" type="password" autocomplete="new-password"
+                     placeholder="Re-enter password" required minlength="8" />
+            </div>
+          </div>
+
+          <div class="face-enroll">
+            <label class="switch">
+              <input type="checkbox" id="enroll-toggle" />
+              <span class="switch__track" aria-hidden="true"><span class="switch__thumb"></span></span>
+              <span class="switch__label">Set up face login <span class="switch__opt">optional</span></span>
+            </label>
+            <p class="tiny muted face-enroll__hint" id="enroll-hint" hidden>
+              Capture your face below. You can also add it later from your account.
+            </p>
+            <p class="tiny face-enroll__status" id="enroll-status" hidden></p>
+          </div>
+
+          <button class="btn btn--primary btn--full btn--lg" id="signup-submit" type="submit">Create account</button>
+        </form>
+
+        <p class="tiny muted auth-note">
+          Accounts are stored locally on this machine only. Face login is a
+          convenience feature and is less secure than a password — no photos are
+          uploaded anywhere.
+        </p>
+      </section>
+    </main>
+  </div>
+
+  <!-- ============ FACE CAPTURE MODAL ============ -->
+  <div class="modal" id="face-modal" hidden>
+    <div class="modal__backdrop" data-close="face"></div>
+    <div class="modal__dialog" role="dialog" aria-modal="true" aria-label="Face capture">
+      <button class="modal__close" data-close="face" aria-label="Close">&times;</button>
+      <h3 class="modal__title" id="face-modal-title">Position your face</h3>
+      <div class="camera-stage camera-stage--face">
+        <video id="face-video" playsinline autoplay muted></video>
+        <div class="camera-guide camera-guide--oval" aria-hidden="true"></div>
+      </div>
+      <p id="face-modal-error" class="alert" hidden></p>
+      <p class="tiny muted" id="face-modal-hint">Center your face, look at the camera, and keep good lighting.</p>
+      <div class="modal__actions">
+        <button class="btn btn--primary" id="face-capture-btn" type="button">Capture</button>
+        <button class="btn btn--ghost" data-close="face" type="button">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="auth.js"></script>
+</body>
+</html>

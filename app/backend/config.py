@@ -91,7 +91,43 @@ VLM_PROMPT = (
 )
 
 # --------------------------------------------------------------------------
-# 5. Server
+# 5. Authentication (local accounts + optional face login)
+# --------------------------------------------------------------------------
+# All auth data lives in a local SQLite file inside artifacts/ (gitignored).
+# There are two login modes:
+#   1. email + password  (PBKDF2-HMAC-SHA256, salted, stdlib only)
+#   2. face recognition  (face embedding produced by the SAME ConvNeXt
+#      backbone used for leaves; matched by cosine similarity)
+#
+# SECURITY NOTE: the face embeddings come from a general-purpose ImageNet
+# backbone, not a dedicated face-recognition network, and there is NO liveness
+# detection. This is convenient for a local, single-machine app but is NOT
+# hardened against spoofing (e.g. holding up a photo). Email + password
+# remains the primary, reliable credential; face login is a convenience.
+AUTH_DB_FILE = ARTIFACTS_DIR / "users.db"
+
+# Number of PBKDF2 iterations for password hashing. Higher = slower = safer.
+PBKDF2_ITERATIONS = int(os.environ.get("LEAF_PBKDF2_ITERATIONS", "200000"))
+
+# Session lifetime (seconds) before a login token expires. Default: 7 days.
+SESSION_TTL_SECONDS = int(os.environ.get("LEAF_SESSION_TTL", str(7 * 24 * 3600)))
+
+# Cosine-similarity threshold for accepting a face match. The vectors are
+# L2-normalised, so similarity is in [-1, 1]. ImageNet-backbone face crops
+# from the same person typically score high; tune this for your camera /
+# lighting. Too low -> false accepts; too high -> legitimate users rejected.
+FACE_MATCH_THRESHOLD = float(os.environ.get("LEAF_FACE_MATCH_THRESHOLD", "0.86"))
+
+# Smallest face (in pixels, shorter side) the detector will accept. Guards
+# against matching tiny, low-detail background faces.
+FACE_MIN_SIZE = int(os.environ.get("LEAF_FACE_MIN_SIZE", "80"))
+
+# Fraction of the detected face box added as margin before embedding, so the
+# crop includes hairline / chin context the backbone can use.
+FACE_CROP_MARGIN = 0.25
+
+# --------------------------------------------------------------------------
+# 6. Server
 # --------------------------------------------------------------------------
 HOST = "127.0.0.1"
 PORT = 8000

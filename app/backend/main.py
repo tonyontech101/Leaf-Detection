@@ -17,16 +17,19 @@ from . import config
 
 import logging
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import health, inference, leaf_utils, plant_info
+from . import auth_db, auth_routes, health, inference, leaf_utils, plant_info
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("leaf")
 
 app = FastAPI(title="Leaf Detection (offline)", version="1.0.0")
+
+# Authentication routes (local accounts + optional face login).
+app.include_router(auth_routes.router)
 
 MAX_UPLOAD_BYTES = 15 * 1024 * 1024   # 15 MB guard against oversized uploads
 
@@ -43,8 +46,14 @@ def health_check() -> dict:
 
 
 @app.post("/api/analyze")
-async def analyze(image: UploadFile = File(...)) -> JSONResponse:
-    """Analyse a single leaf image: species, health status, similar leaves."""
+async def analyze(
+    image: UploadFile = File(...),
+    user: dict = Depends(auth_routes.require_user),
+) -> JSONResponse:
+    """Analyse a single leaf image: species, health status, similar leaves.
+
+    Requires an authenticated session (Authorization: Bearer <token>).
+    """
     if not inference._index.ready:
         raise HTTPException(
             status_code=503,
@@ -96,12 +105,15 @@ if config.FRONTEND_DIR.exists():
 @app.on_event("startup")
 def _startup_readiness() -> None:
     """Log an explicit offline-readiness summary on boot."""
+    auth_db.init_db()                       # create the accounts DB if missing
+    auth_db.purge_expired_sessions()
     idx = inference._index.ready
     vlm = health.vlm_available()
     log.info("=" * 56)
     log.info(" Leaf Detection - startup readiness")
     log.info("   embedding index : %s", "READY" if idx else "MISSING (run setup)")
     log.info("   local VLM       : %s", "READY" if vlm else "not running (heuristic only)")
+    log.info("   accounts DB     : %s", config.AUTH_DB_FILE.name)
     log.info("   species ID + similarity work fully offline.")
     if not idx:
         log.warning("   -> Run: python -m app.scripts.preprocess_build_index")

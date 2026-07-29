@@ -4,8 +4,9 @@ A local-first web application that identifies plant species and assesses leaf he
 
 ## Features
 
-- **Species Identification** — Uses a ConvNeXt backbone to extract embeddings and kNN to classify across 22 leaf classes (8 species × various conditions).
-- **Health Analysis** — Optionally uses a local Ollama VLM (e.g. Moondream) for free-text condition descriptions, combined with OpenCV colour heuristics for an overall health status.
+- **Accounts & Login** — Local sign-up / sign-in with **two modes**: email + password, or **face recognition** using face embeddings. All accounts and face data stay on your machine.
+- **Species Identification** — Uses a ConvNeXt backbone to extract embeddings and kNN to classify across 22 leaf classes (7 species × various conditions).
+- **Health Analysis** — Combines a local Ollama VLM (e.g. Moondream) with OpenCV colour heuristics to report an overall health status and structured **symptoms, treatment, and prevention** guidance.
 - **Similar Image Gallery** — Returns the most visually similar leaves from the dataset.
 - **Fully Offline** — After initial setup, the app runs entirely on localhost with no internet required.
 - **PWA Support** — Installable as a Progressive Web App with a service worker for offline caching.
@@ -21,6 +22,8 @@ A local-first web application that identifies plant species and assesses leaf he
 | Kalanchoe Pinnata | Chlorotic, Disease, Healthy |
 | Mikania Micrantha | Disease, Distorted, Healthy |
 | Piper Betle | Chlorotic, Disease, Healthy |
+
+The reference dataset used to build the index contains **1,981 images** across these 22 classes.
 
 ## Project Structure
 
@@ -43,15 +46,20 @@ LeafDetection/
     ├── backend/               # FastAPI backend
     │   ├── config.py          # Central configuration & paths
     │   ├── main.py            # API routes & static file serving
+    │   ├── auth_db.py         # Local accounts store (SQLite) + password hashing + sessions
+    │   ├── auth_routes.py     # Auth API: signup / login / face-login / logout
+    │   ├── face_auth.py       # Face detect + crop + embed + match (offline)
     │   ├── embedding.py       # Feature extraction
     │   ├── inference.py       # kNN species prediction
     │   ├── health.py          # Leaf health analysis (VLM + OpenCV)
     │   ├── leaf_utils.py      # Image processing utilities
     │   └── plant_info.py      # Plant species information
     ├── frontend/              # Static HTML/CSS/JS frontend
-    │   ├── index.html
+    │   ├── index.html         # Main app (auth-gated)
+    │   ├── login.html         # Sign in / create account page
     │   ├── styles.css
     │   ├── app.js
+    │   ├── auth.js            # Login / signup / face-login logic
     │   └── sw.js              # Service worker
     └── scripts/               # Setup & preprocessing scripts
         ├── setup_offline.py
@@ -139,5 +147,36 @@ Configuration is managed in [`app/backend/config.py`](app/backend/config.py). Ke
 | `LEAF_EMBEDDING_MODEL` | `convnext_small` | Backbone model (`mobilenet_v3_large`, `convnext_tiny`, `convnext_small`, `efficientnet_v2_s`) |
 | `OLLAMA_HOST` | `http://127.0.0.1:11434` | Ollama server URL for VLM health analysis |
 | `LEAF_VLM_MODEL` | `moondream` | Vision-language model name |
+| `LEAF_SESSION_TTL` | `604800` | Login session lifetime in seconds (default 7 days) |
+| `LEAF_PBKDF2_ITERATIONS` | `200000` | PBKDF2 iterations for password hashing |
+| `LEAF_FACE_MATCH_THRESHOLD` | `0.86` | Cosine-similarity cutoff for accepting a face match (0–1) |
+| `LEAF_FACE_MIN_SIZE` | `80` | Smallest detectable face, in pixels |
 
 > **Important:** Changing the embedding model requires re-running setup and rebuilding the index.
+
+## Accounts & Face Login
+
+The app requires an account. On first launch you'll be taken to the sign-in
+page (`login.html`); create an account with your name, email, and a password
+(minimum 8 characters). You can optionally enable **face login** during
+sign-up, or sign in later with **email + password**.
+
+How it works, fully offline:
+
+- **Passwords** are stored as salted **PBKDF2-HMAC-SHA256** hashes in a local
+  SQLite database (`app/artifacts/users.db`, git-ignored). Nothing leaves your
+  machine.
+- **Face login** detects your face with OpenCV's bundled Haar cascade, crops
+  it, and embeds it with the **same ConvNeXt backbone** used for leaves. Login
+  compares the captured face against enrolled embeddings by cosine similarity.
+
+> **Security note:** Face embeddings are produced by a general-purpose ImageNet
+> backbone, not a dedicated face-recognition network, and there is **no liveness
+> detection** — a printed photo could fool it. Treat face login as a
+> convenience, not a hardened security control. Email + password is the
+> primary, reliable credential. If face login rejects you too often (or accepts
+> too easily), tune `LEAF_FACE_MATCH_THRESHOLD`. Because the face embedder is
+> the configured `LEAF_EMBEDDING_MODEL`, changing that model invalidates any
+> previously enrolled faces — re-enroll after switching backbones.
+
+To reset all accounts, stop the app and delete `app/artifacts/users.db`.

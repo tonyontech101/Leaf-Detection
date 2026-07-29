@@ -3,3 +3,5 @@ __pycache__/
 .venv/
 Original Dataset/
 app/artifacts/torch_cache/
+app/artifacts/users.db
+app/artifacts/users.db-journal

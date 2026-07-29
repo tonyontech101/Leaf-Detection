@@ -14,6 +14,29 @@ const MAX_BYTES = 15 * 1024 * 1024;
 const ACCEPTED = ["image/png", "image/jpeg"];
 const RING_CIRCUMFERENCE = 2 * Math.PI * 52; // r = 52 in the SVG
 
+/* ---------------- auth session (kept in sync with auth.js) ------------ */
+const TOKEN_KEY = "leaf_auth_token";
+const USER_KEY = "leaf_auth_user";
+const LOGIN_URL = "login.html";
+
+const authToken = () => localStorage.getItem(TOKEN_KEY);
+const authHeaders = () => {
+  const t = authToken();
+  return t ? { Authorization: `Bearer ${t}` } : {};
+};
+function clearSession() {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+}
+function goToLogin() {
+  clearSession();
+  window.location.href = LOGIN_URL;
+}
+function cachedUser() {
+  try { return JSON.parse(localStorage.getItem(USER_KEY) || "null"); }
+  catch (_) { return null; }
+}
+
 const LOADING_STEPS = [
   { msg: "Extracting features…", progress: 20 },
   { msg: "Identifying species…", progress: 45 },
@@ -73,7 +96,6 @@ const el = {
   healthBadge: $("health-badge"),
   severityBadge: $("severity-badge"),
   plantName: $("plant-name"),
-  plantDesc: $("plant-desc"),
   ringFill: $("ring-fill"),
   confValue: $("conf-value"),
   altSpecies: $("alt-species"),
@@ -108,6 +130,11 @@ const el = {
   cmpScore: $("cmp-score"),
   compareTable: $("compare-table"),
   connBadge: $("conn-badge"),
+  // auth / nav
+  userChip: $("user-chip"),
+  userName: $("user-name"),
+  userAvatar: $("user-avatar"),
+  logoutBtn: $("logout-btn"),
 };
 
 /* ---------------- app state ---------------- */
@@ -178,7 +205,16 @@ async function sendPrediction() {
   form.append("image", state.file, state.file.name || "leaf.jpg");
 
   try {
-    const res = await fetch(API_ANALYZE, { method: "POST", body: form });
+    const res = await fetch(API_ANALYZE, {
+      method: "POST",
+      body: form,
+      headers: authHeaders(),
+    });
+    if (res.status === 401) {
+      await hideLoading();
+      goToLogin();
+      return;
+    }
     if (!res.ok) {
       const detail = await res.json().catch(() => ({}));
       throw new Error(detail.detail || `Analysis failed (${res.status}).`);
@@ -259,11 +295,6 @@ function displayResults(data) {
 
   // --- species ---
   el.plantName.textContent = sp.species || "Unknown";
-  // Description is the local vision model's AI-generated observation of the
-  // captured leaf. When the model isn't running it comes back empty.
-  el.plantDesc.textContent = sp.description
-    ? sp.description
-    : "AI leaf description unavailable — start the local vision model to generate one.";
 
   // --- confidence ring ---
   const confPct = pct(sp.confidence);
@@ -515,6 +546,49 @@ document.addEventListener("keydown", (e) => {
 window.addEventListener("online", updateConnBadge);
 window.addEventListener("offline", updateConnBadge);
 updateConnBadge();
+
+/* ============================================================
+   Auth guard + user menu
+   ============================================================ */
+function renderUser(user) {
+  if (!user) return;
+  const name = user.name || user.email || "Account";
+  el.userName.textContent = name;
+  el.userAvatar.textContent = (name.trim()[0] || "?").toUpperCase();
+  show(el.userChip);
+  show(el.logoutBtn);
+}
+
+async function logout() {
+  const headers = authHeaders();
+  clearSession();
+  try {
+    await fetch("/api/auth/logout", { method: "POST", headers });
+  } catch (_) { /* best-effort; token is already cleared locally */ }
+  window.location.href = LOGIN_URL;
+}
+
+async function enforceAuth() {
+  const token = authToken();
+  if (!token) { goToLogin(); return; }
+
+  // optimistic paint from cache, then verify with the server
+  renderUser(cachedUser());
+  try {
+    const res = await fetch("/api/auth/me", { headers: authHeaders() });
+    if (res.status === 401) { goToLogin(); return; }
+    if (res.ok) {
+      const data = await res.json();
+      localStorage.setItem(USER_KEY, JSON.stringify(data.user || {}));
+      renderUser(data.user);
+    }
+  } catch (_) {
+    // offline with a token present: allow the cached session to stand
+  }
+}
+
+el.logoutBtn.addEventListener("click", logout);
+enforceAuth();
 
 // PWA service worker (offline shell)
 if ("serviceWorker" in navigator) {

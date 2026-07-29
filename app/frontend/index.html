@@ -26,7 +26,14 @@
       </span>
       <span class="brand__text">Leaf Recognition <b>AI</b></span>
     </a>
-    <span id="conn-badge" class="chip chip--soft" title="This app runs locally">Local</span>
+    <div class="user-menu">
+      <span id="conn-badge" class="chip chip--soft" title="This app runs locally">Local</span>
+      <span class="user-chip" id="user-chip" hidden>
+        <span class="user-chip__avatar" id="user-avatar" aria-hidden="true">?</span>
+        <span id="user-name">Account</span>
+      </span>
+      <button class="btn btn--ghost btn--sm" id="logout-btn" type="button" hidden>Log out</button>
+    </div>
   </header>
 
   <main id="top">
@@ -135,7 +142,6 @@
 
             <p class="eyebrow">Plant name</p>
             <h3 class="result__name" id="plant-name">—</h3>
-            <p class="result__desc" id="plant-desc"></p>
 
             <div class="confidence">
               <div class="ring" id="conf-ring">
