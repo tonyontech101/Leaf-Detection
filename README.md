@@ -138,6 +138,62 @@ python run.py
 
 The app will launch at **http://127.0.0.1:8000** and automatically open in your default browser.
 
+## Health Analysis with Ollama (optional)
+
+Species identification, similarity search, and the OpenCV colour heuristic all
+work **without** Ollama. To enable the richer AI health analysis (structured
+symptoms, treatment, and prevention), run a local vision-language model through
+[Ollama](https://ollama.com/). Everything still stays on your machine — Ollama
+serves the model on `localhost`.
+
+1. **Install Ollama**
+
+   - **Windows / macOS:** download the installer from
+     [ollama.com/download](https://ollama.com/download) and run it. Ollama
+     starts automatically and runs in the background.
+   - **Linux:**
+     ```bash
+     curl -fsSL https://ollama.com/install.sh | sh
+     ```
+
+2. **Download the vision model** (one-time, requires internet)
+
+   ```bash
+   ollama pull moondream
+   ```
+
+   `moondream` is small and CPU-friendly. You can use any other vision model
+   Ollama supports (e.g. `llava`) by setting `LEAF_VLM_MODEL` accordingly.
+
+3. **Make sure the Ollama server is running**
+
+   The desktop app keeps the server running automatically. To start it manually
+   (or on Linux/servers), run:
+
+   ```bash
+   ollama serve
+   ```
+
+   By default it listens on `http://127.0.0.1:11434`, which matches the app's
+   `OLLAMA_HOST` default. Verify it responds:
+
+   ```bash
+   ollama list          # shows installed models (moondream should appear)
+   ```
+
+4. **Run the Leaf Detection app** (`python run.py`). On startup the log prints
+   whether the local VLM was detected:
+
+   ```
+   local VLM       : READY
+   ```
+
+   If Ollama isn't running, the app still works and falls back to the OpenCV
+   colour heuristic for the health status.
+
+> **Tip:** Start Ollama **before** launching the app so the VLM is detected on
+> boot. If you start it afterwards, refresh the page and analyze again.
+
 ## Configuration
 
 Configuration is managed in [`app/backend/config.py`](app/backend/config.py). Key settings can be overridden via environment variables:
